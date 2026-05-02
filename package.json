@@ -1,0 +1,36 @@
+{
+  "name": "llm-uncertainty",
+  "version": "0.1.0",
+  "description": "Small TypeScript utilities for estimating uncertainty across repeated LLM outputs.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "llm",
+    "uncertainty",
+    "consistency"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  }
+}

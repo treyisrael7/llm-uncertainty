@@ -1,0 +1,32 @@
+﻿{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": [
+      "ESNext"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "ignoreDeprecations": "6.0",
+    "skipLibCheck": true,
+    "types": [
+      "node",
+      "vitest"
+    ],
+    "outDir": "dist"
+  },
+  "include": [
+    "src",
+    "test",
+    "examples",
+    "tsup.config.ts",
+    "vitest.config.ts"
+  ]
+}
+
+
