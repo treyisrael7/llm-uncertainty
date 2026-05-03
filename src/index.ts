@@ -1,14 +1,20 @@
-export interface AnalyzeInput {
-  runs: string[];
-}
+export { jaccardSimilarity, normalizeText, tokenize } from "./text";
 
-export interface AnalyzeResult {
-  confidence: number;
-  variance: number;
-  consensus: string;
-  unstablePhrases: string[];
-  outliers: string[];
-}
+export type {
+  AnalyzeOptions,
+  PairwiseComparison,
+  UncertaintyResult,
+  UnstablePhrase
+} from "./types";
+
+import { jaccardSimilarity, normalizeText } from "./text";
+
+import type {
+  AnalyzeOptions,
+  PairwiseComparison,
+  UncertaintyResult,
+  UnstablePhrase
+} from "./types";
 
 const UNCERTAINTY_TERMS = [
   "likely",
@@ -23,19 +29,21 @@ const UNCERTAINTY_TERMS = [
   "unknown"
 ] as const;
 
-export function analyze(input: AnalyzeInput): AnalyzeResult {
+export function analyze(input: AnalyzeOptions): UncertaintyResult {
   if (input.runs.length === 0) {
     return {
       confidence: 0,
       variance: 1,
       consensus: "",
       unstablePhrases: [],
-      outliers: []
+      outliers: [],
+      comparisons: []
     };
   }
 
   const normalizedRuns = input.runs.map(normalizeText);
-  const averageSimilarity = getAveragePairwiseSimilarity(normalizedRuns);
+  const comparisons = compareRuns(input.runs);
+  const averageSimilarity = getAverageSimilarity(comparisons);
   const confidence = round(averageSimilarity);
   const variance = round(1 - confidence);
 
@@ -44,50 +52,49 @@ export function analyze(input: AnalyzeInput): AnalyzeResult {
     variance,
     consensus: input.runs[0],
     unstablePhrases: findUnstablePhrases(input.runs),
-    outliers: findOutliers(input.runs, normalizedRuns, averageSimilarity)
+    outliers: findOutliers(input.runs, normalizedRuns, averageSimilarity),
+    comparisons
   };
 }
 
-function normalizeText(value: string): string {
-  return value.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").trim();
-}
+function compareRuns(values: string[]): PairwiseComparison[] {
+  const comparisons: PairwiseComparison[] = [];
 
-function getAveragePairwiseSimilarity(values: string[]): number {
-  if (values.length === 1) {
-    return 1;
-  }
-
-  const scores: number[] = [];
-
-  for (let left = 0; left < values.length; left += 1) {
-    for (let right = left + 1; right < values.length; right += 1) {
-      scores.push(getJaccardSimilarity(values[left], values[right]));
+  for (let leftIndex = 0; leftIndex < values.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < values.length; rightIndex += 1) {
+      comparisons.push({
+        leftIndex,
+        rightIndex,
+        similarity: round(jaccardSimilarity(values[leftIndex], values[rightIndex]))
+      });
     }
   }
 
-  return scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  return comparisons;
 }
 
-function getJaccardSimilarity(left: string, right: string): number {
-  const leftWords = new Set(left.split(/\s+/).filter(Boolean));
-  const rightWords = new Set(right.split(/\s+/).filter(Boolean));
-
-  if (leftWords.size === 0 && rightWords.size === 0) {
+function getAverageSimilarity(comparisons: PairwiseComparison[]): number {
+  if (comparisons.length === 0) {
     return 1;
   }
 
-  const intersection = [...leftWords].filter((word) => rightWords.has(word));
-  const union = new Set([...leftWords, ...rightWords]);
-
-  return intersection.length / union.size;
+  return (
+    comparisons.reduce((sum, comparison) => sum + comparison.similarity, 0) /
+    comparisons.length
+  );
 }
 
-function findUnstablePhrases(runs: string[]): string[] {
+function findUnstablePhrases(runs: string[]): UnstablePhrase[] {
   const combined = runs.join(" ").toLowerCase();
 
-  return UNCERTAINTY_TERMS.filter((term) =>
-    new RegExp(`\\b${term}\\b`, "u").test(combined)
-  );
+  return UNCERTAINTY_TERMS.map((term) => ({
+    phrase: term,
+    count: countPhrase(combined, term)
+  })).filter((term) => term.count > 0);
+}
+
+function countPhrase(value: string, phrase: string): number {
+  return value.match(new RegExp(`\\b${phrase}\\b`, "gu"))?.length ?? 0;
 }
 
 function findOutliers(
@@ -102,7 +109,7 @@ function findOutliers(
   return runs.filter((_, index) => {
     const otherRuns = normalizedRuns.filter((__, otherIndex) => otherIndex !== index);
     const similarities = otherRuns.map((run) =>
-      getJaccardSimilarity(normalizedRuns[index], run)
+      jaccardSimilarity(normalizedRuns[index], run)
     );
     const runAverage =
       similarities.reduce((sum, score) => sum + score, 0) / similarities.length;
