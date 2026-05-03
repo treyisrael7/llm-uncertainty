@@ -7,9 +7,8 @@ const sampledAnswers = [
   "Do not approve the refund because the item was used."
 ];
 
-const result = analyze({
-  verbose: true,
-  runs: sampledAnswers
+const result = analyze(sampledAnswers, {
+  verbose: true
 });
 
 console.log("Debug an unstable prompt");

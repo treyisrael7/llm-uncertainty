@@ -8,25 +8,39 @@ import type {
   AnalysisStatus,
   AnalyzeOptions,
   AnalyzeThresholds,
+  AnalyzerOptions,
   DisagreementCluster,
   PairwiseComparison,
   UncertaintyResult
 } from "./types";
 
+const DEFAULT_MIN_AGREEMENT = 0.4;
+
 const DEFAULT_THRESHOLDS = {
   stable: 0.75,
   unstable: 0.4,
-  agreement: 0.4
+  agreement: DEFAULT_MIN_AGREEMENT
 } satisfies Required<AnalyzeThresholds>;
 
 const LOW_SIMILARITY_THRESHOLD = 0.2;
 
-export function analyze(options: AnalyzeOptions): UncertaintyResult {
+export function analyze(runs: string[], options?: AnalyzerOptions): UncertaintyResult;
+export function analyze(options: AnalyzeOptions): UncertaintyResult;
+export function analyze(
+  input: string[] | AnalyzeOptions,
+  options: AnalyzerOptions = {}
+): UncertaintyResult {
+  const analysisOptions = normalizeAnalyzeInput(input, options);
+
+  return analyzeRuns(analysisOptions);
+}
+
+function analyzeRuns(options: AnalyzeOptions): UncertaintyResult {
   if (options.runs.length < 2) {
     throw new Error("analyze requires at least two runs");
   }
 
-  const thresholds = resolveThresholds(options.thresholds);
+  const thresholds = resolveThresholds(options.thresholds, options.minAgreement);
   const comparisons = compareRuns(options.runs);
   const clusters = buildClusters(
     options.runs,
@@ -57,6 +71,22 @@ export function analyze(options: AnalyzeOptions): UncertaintyResult {
   }
 
   return result;
+}
+
+function normalizeAnalyzeInput(
+  input: string[] | AnalyzeOptions,
+  options: AnalyzerOptions
+): AnalyzeOptions {
+  if (Array.isArray(input)) {
+    return {
+      runs: input,
+      customGroups: options.customGroups,
+      minAgreement: options.minAgreement,
+      verbose: options.verbose
+    };
+  }
+
+  return input;
 }
 
 function compareRuns(runs: string[]): PairwiseComparison[] {
@@ -237,12 +267,13 @@ function getAverageSimilarity(comparisons: PairwiseComparison[]): number {
 }
 
 function resolveThresholds(
-  thresholds: AnalyzeThresholds | undefined
+  thresholds: AnalyzeThresholds | undefined,
+  minAgreement: number | undefined
 ): Required<AnalyzeThresholds> {
   return {
     stable: thresholds?.stable ?? DEFAULT_THRESHOLDS.stable,
     unstable: thresholds?.unstable ?? DEFAULT_THRESHOLDS.unstable,
-    agreement: thresholds?.agreement ?? DEFAULT_THRESHOLDS.agreement
+    agreement: minAgreement ?? thresholds?.agreement ?? DEFAULT_THRESHOLDS.agreement
   };
 }
 

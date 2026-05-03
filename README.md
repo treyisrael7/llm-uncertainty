@@ -7,14 +7,14 @@ Use `llm-uncertainty` when your app samples a prompt 3-5 times and needs a fast 
 ```ts
 import { analyze } from "llm-uncertainty";
 
-const result = analyze({
-  runs: [
-    "Approve the refund because the item arrived damaged.",
-    "Approve the refund because the product arrived damaged.",
-    "Approve the refund because the order arrived damaged.",
-    "Do not approve the refund because the item was used."
-  ]
-});
+const outputs = [
+  "Approve the refund because the item arrived damaged.",
+  "Approve the refund because the product arrived damaged.",
+  "Approve the refund because the order arrived damaged.",
+  "Do not approve the refund because the item was used."
+];
+
+const result = analyze(outputs);
 
 if (result.status !== "stable") {
   // Retry, ask a cheaper verifier, lower automation, or send to review.
@@ -45,7 +45,7 @@ npm install llm-uncertainty
 ## The 30-Second Model
 
 1. Run the same prompt multiple times in your LLM app.
-2. Pass the text outputs to `analyze({ runs })`.
+2. Pass the text outputs to `analyze(outputs)`.
 3. Use `status` and `confidence` to decide whether to trust, retry, escalate, or inspect.
 
 ```ts
@@ -53,7 +53,7 @@ const runs = await Promise.all(
   Array.from({ length: 4 }, () => callModel(prompt))
 );
 
-const uncertainty = analyze({ runs });
+const uncertainty = analyze(runs);
 
 switch (uncertainty.status) {
   case "stable":
@@ -95,8 +95,8 @@ The default result is intentionally small enough to log or use in a guardrail:
 Pass `verbose: true` when you want to understand why a prompt is unstable:
 
 ```ts
-const result = analyze({
-  runs,
+const result = analyze(outputs, {
+  minAgreement: 0.7,
   verbose: true
 });
 
@@ -117,8 +117,7 @@ Verbose results include:
 v0.1 uses lightweight heuristics. Add domain vocabulary when your app has synonyms that should count as agreement.
 
 ```ts
-const result = analyze({
-  runs,
+const result = analyze(runs, {
   customGroups: {
     refundTerms: ["refund", "reimbursement", "credit"],
     outageTerms: ["outage", "incident", "service disruption"]
@@ -129,13 +128,8 @@ const result = analyze({
 You can also tune thresholds for stricter or looser routing:
 
 ```ts
-const result = analyze({
-  runs,
-  thresholds: {
-    stable: 0.8,
-    unstable: 0.35,
-    agreement: 0.45
-  }
+const result = analyze(runs, {
+  minAgreement: 0.7
 });
 ```
 
@@ -162,19 +156,29 @@ npx tsx examples/no-consensus.ts
 ## API
 
 ```ts
-analyze({
-  runs: string[];
-  verbose?: boolean;
-  customGroups?: Record<string, string[]>;
-  thresholds?: {
-    stable?: number;
-    unstable?: number;
-    agreement?: number;
-  };
-});
+analyze(
+  outputs: string[],
+  options?: {
+    minAgreement?: number;
+    verbose?: boolean;
+    customGroups?: Record<string, string[]>;
+  }
+);
 ```
 
-`runs` must contain at least two outputs from the same prompt or task.
+`outputs` must contain at least two outputs from the same prompt or task. `minAgreement` controls how similar two outputs must be before they are grouped together, and defaults to `0.4`.
+
+The original object form is still supported for existing callers:
+
+```ts
+analyze({
+  runs,
+  verbose: true,
+  customGroups: {
+    refundTerms: ["refund", "reimbursement", "credit"]
+  }
+});
+```
 
 ## Notes
 

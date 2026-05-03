@@ -1,16 +1,18 @@
 import { analyze } from "../src";
 
-const result = analyze({
-  verbose: true,
-  runs: [
+const result = analyze(
+  [
     "Create a refund for the customer.",
     "Issue a reimbursement to the customer.",
     "Give the customer account credit."
   ],
-  customGroups: {
-    refundTerms: ["refund", "reimbursement", "credit"]
+  {
+    customGroups: {
+      refundTerms: ["refund", "reimbursement", "credit"]
+    },
+    verbose: true
   }
-});
+);
 
 console.log("Custom vocabulary for domain synonyms");
 console.log("-------------------------------------");

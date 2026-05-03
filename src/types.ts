@@ -1,8 +1,12 @@
-export interface AnalyzeOptions {
-  runs: string[];
+export interface AnalyzerOptions {
   customGroups?: CustomGroups;
-  thresholds?: AnalyzeThresholds;
+  minAgreement?: number;
   verbose?: boolean;
+}
+
+export interface AnalyzeOptions extends AnalyzerOptions {
+  runs: string[];
+  thresholds?: AnalyzeThresholds;
 }
 
 export interface AnalyzeThresholds {

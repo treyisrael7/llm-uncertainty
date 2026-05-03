@@ -1,14 +1,14 @@
 import { analyze } from "../src";
 
-const result = analyze({
-  verbose: true,
-  runs: [
+const result = analyze(
+  [
     "The customer is eligible for a refund because the item arrived damaged.",
     "The customer may qualify for a refund because the product arrived damaged.",
     "The customer is not eligible for a refund because the item was used.",
     "The customer does not qualify for a refund because the product was used."
-  ]
-});
+  ],
+  { verbose: true }
+);
 
 console.log("Competing interpretations");
 console.log("-------------------------");

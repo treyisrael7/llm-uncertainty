@@ -8,9 +8,7 @@ const sampledAnswers = [
   "Do not approve the refund because the item was used."
 ];
 
-const result = analyze({
-  runs: sampledAnswers
-});
+const result = analyze(sampledAnswers);
 
 if (result.status !== "stable") {
   console.log("Route to review");

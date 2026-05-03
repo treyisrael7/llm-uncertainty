@@ -2,13 +2,32 @@
 import { analyze } from "../src";
 
 describe("analyze", () => {
+  it("accepts outputs directly", () => {
+    const runs = ["alpha beta", "alpha beta", "alpha gamma"];
+
+    expect(analyze(runs)).toEqual(analyze({ runs }));
+  });
+
+  it("accepts an optional analyzer options object", () => {
+    const result = analyze(["alpha beta", "alpha gamma"], {
+      minAgreement: 0.3,
+      verbose: true
+    });
+
+    expect(result.details?.clusters).toHaveLength(1);
+    expect(result.details?.clusters[0]?.indexes).toEqual([0, 1]);
+  });
+
   it("throws if fewer than two runs are provided", () => {
     expect(() => analyze({
-      verbose: true, runs: [] })).toThrow("at least two runs");
+      runs: [],
+      verbose: true
+    })).toThrow("at least two runs");
     expect(() => analyze({
-      verbose: true, runs: ["Only one output"] })).toThrow(
-      "at least two runs"
-    );
+      runs: ["Only one output"],
+      verbose: true
+    })).toThrow("at least two runs");
+    expect(() => analyze([])).toThrow("at least two runs");
   });
 
   it("returns confidence and variance from the strongest agreement cluster", () => {

@@ -6,9 +6,7 @@ const sampledAnswers = [
   "Approve the refund because the order arrived damaged."
 ];
 
-const result = analyze({
-  runs: sampledAnswers
-});
+const result = analyze(sampledAnswers);
 
 console.log("Basic LLM consistency check");
 console.log("---------------------------");

@@ -10,6 +10,7 @@ export type {
   AnalysisStatus,
   AnalyzeOptions,
   AnalyzeThresholds,
+  AnalyzerOptions,
   CustomGroups,
   DisagreementCluster,
   PairwiseComparison,
