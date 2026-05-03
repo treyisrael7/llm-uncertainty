@@ -1,6 +1,7 @@
 export interface AnalyzerOptions {
   customGroups?: CustomGroups;
   minAgreement?: number;
+  strictness?: AnalyzerStrictness;
   verbose?: boolean;
 }
 
@@ -16,6 +17,8 @@ export interface AnalyzeThresholds {
 }
 
 export type AnalysisStatus = "stable" | "unstable" | "split" | "no-consensus";
+
+export type AnalyzerStrictness = "loose" | "normal" | "strict";
 
 export type CustomGroups = Record<string, string[]>;
 

@@ -18,6 +18,64 @@ describe("analyze", () => {
     expect(result.details?.clusters[0]?.indexes).toEqual([0, 1]);
   });
 
+  it("uses loose strictness for more forgiving clustering", () => {
+    const result = analyze(["alpha beta", "alpha gamma"], {
+      strictness: "loose",
+      verbose: true
+    });
+
+    expect(result.status).toBe("stable");
+    expect(result.details?.clusters).toHaveLength(1);
+    expect(result.details?.clusters[0]?.indexes).toEqual([0, 1]);
+  });
+
+  it("keeps normal strictness aligned with current behavior", () => {
+    const directResult = analyze(["alpha beta", "alpha gamma"], {
+      strictness: "normal",
+      verbose: true
+    });
+    const defaultResult = analyze(["alpha beta", "alpha gamma"], {
+      verbose: true
+    });
+
+    expect(directResult).toEqual(defaultResult);
+    expect(directResult.status).toBe("unstable");
+    expect(directResult.details?.clusters).toHaveLength(2);
+  });
+
+  it("uses strict strictness to mark outputs unstable more easily", () => {
+    const runs = [
+      "alpha beta gamma",
+      "alpha beta gamma",
+      "alpha beta delta",
+      "alpha beta delta"
+    ];
+
+    expect(analyze(runs).status).toBe("stable");
+
+    const result = analyze(runs, {
+      strictness: "strict",
+      verbose: true
+    });
+
+    expect(result.status).toBe("unstable");
+    expect(result.details?.clusters.map((cluster) => cluster.indexes)).toEqual([
+      [0, 1],
+      [2, 3]
+    ]);
+  });
+
+  it("lets minAgreement override strictness", () => {
+    const result = analyze(["alpha beta", "alpha gamma"], {
+      minAgreement: 0.3,
+      strictness: "strict",
+      verbose: true
+    });
+
+    expect(result.status).toBe("stable");
+    expect(result.details?.clusters).toHaveLength(1);
+  });
+
   it("throws if fewer than two runs are provided", () => {
     expect(() => analyze({
       runs: [],

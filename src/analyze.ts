@@ -9,17 +9,22 @@ import type {
   AnalyzeOptions,
   AnalyzeThresholds,
   AnalyzerOptions,
+  AnalyzerStrictness,
   DisagreementCluster,
   PairwiseComparison,
   UncertaintyResult
 } from "./types";
 
-const DEFAULT_MIN_AGREEMENT = 0.4;
+const STRICTNESS_MIN_AGREEMENT = {
+  loose: 0.3,
+  normal: 0.4,
+  strict: 0.8
+} satisfies Record<AnalyzerStrictness, number>;
 
 const DEFAULT_THRESHOLDS = {
   stable: 0.75,
   unstable: 0.4,
-  agreement: DEFAULT_MIN_AGREEMENT
+  agreement: STRICTNESS_MIN_AGREEMENT.normal
 } satisfies Required<AnalyzeThresholds>;
 
 const LOW_SIMILARITY_THRESHOLD = 0.2;
@@ -40,7 +45,11 @@ function analyzeRuns(options: AnalyzeOptions): UncertaintyResult {
     throw new Error("analyze requires at least two runs");
   }
 
-  const thresholds = resolveThresholds(options.thresholds, options.minAgreement);
+  const thresholds = resolveThresholds(
+    options.thresholds,
+    options.minAgreement,
+    options.strictness
+  );
   const comparisons = compareRuns(options.runs);
   const clusters = buildClusters(
     options.runs,
@@ -82,6 +91,7 @@ function normalizeAnalyzeInput(
       runs: input,
       customGroups: options.customGroups,
       minAgreement: options.minAgreement,
+      strictness: options.strictness,
       verbose: options.verbose
     };
   }
@@ -268,12 +278,13 @@ function getAverageSimilarity(comparisons: PairwiseComparison[]): number {
 
 function resolveThresholds(
   thresholds: AnalyzeThresholds | undefined,
-  minAgreement: number | undefined
+  minAgreement: number | undefined,
+  strictness: AnalyzerStrictness = "normal"
 ): Required<AnalyzeThresholds> {
   return {
     stable: thresholds?.stable ?? DEFAULT_THRESHOLDS.stable,
     unstable: thresholds?.unstable ?? DEFAULT_THRESHOLDS.unstable,
-    agreement: minAgreement ?? thresholds?.agreement ?? DEFAULT_THRESHOLDS.agreement
+    agreement: minAgreement ?? thresholds?.agreement ?? STRICTNESS_MIN_AGREEMENT[strictness]
   };
 }
 

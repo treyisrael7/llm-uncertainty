@@ -11,6 +11,7 @@ export type {
   AnalyzeOptions,
   AnalyzeThresholds,
   AnalyzerOptions,
+  AnalyzerStrictness,
   CustomGroups,
   DisagreementCluster,
   PairwiseComparison,

@@ -96,7 +96,7 @@ Pass `verbose: true` when you want to understand why a prompt is unstable:
 
 ```ts
 const result = analyze(outputs, {
-  minAgreement: 0.7,
+  strictness: "strict",
   verbose: true
 });
 
@@ -129,9 +129,11 @@ You can also tune thresholds for stricter or looser routing:
 
 ```ts
 const result = analyze(runs, {
-  minAgreement: 0.7
+  strictness: "strict"
 });
 ```
+
+`strictness` can be `"loose"`, `"normal"`, or `"strict"`. `"normal"` matches the default behavior. If you pass `minAgreement`, it overrides the strictness preset.
 
 ## Examples
 
@@ -160,13 +162,14 @@ analyze(
   outputs: string[],
   options?: {
     minAgreement?: number;
+    strictness?: "loose" | "normal" | "strict";
     verbose?: boolean;
     customGroups?: Record<string, string[]>;
   }
 );
 ```
 
-`outputs` must contain at least two outputs from the same prompt or task. `minAgreement` controls how similar two outputs must be before they are grouped together, and defaults to `0.4`.
+`outputs` must contain at least two outputs from the same prompt or task. `minAgreement` controls how similar two outputs must be before they are grouped together, and defaults to the `"normal"` strictness threshold of `0.4`.
 
 The original object form is still supported for existing callers:
 
