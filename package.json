@@ -1,7 +1,7 @@
 {
   "name": "llm-uncertainty",
   "version": "0.1.0",
-  "description": "Small TypeScript utilities for estimating uncertainty across repeated LLM outputs.",
+  "description": "Check whether repeated LLM outputs agree before your app trusts the answer.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -24,7 +24,10 @@
   "keywords": [
     "llm",
     "uncertainty",
-    "consistency"
+    "consistency",
+    "guardrails",
+    "evals",
+    "typescript"
   ],
   "license": "MIT",
   "devDependencies": {

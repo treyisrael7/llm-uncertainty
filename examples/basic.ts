@@ -1,14 +1,17 @@
 import { analyze } from "../src";
 
+const sampledAnswers = [
+  "Approve the refund because the item arrived damaged.",
+  "Approve the refund because the product arrived damaged.",
+  "Approve the refund because the order arrived damaged."
+];
+
 const result = analyze({
-  runs: [
-    "The customer is likely eligible for a refund because the item arrived damaged.",
-    "The customer may be eligible for a refund since the item was damaged.",
-    "The customer could qualify for a refund because the item arrived broken.",
-    "The customer is not eligible for a refund because the item was used."
-  ]
+  runs: sampledAnswers
 });
 
-console.log("Basic analysis");
-console.log("--------------");
-console.log(result);
+console.log("Basic LLM consistency check");
+console.log("---------------------------");
+console.log(`Status: ${result.status}`);
+console.log(`Confidence: ${result.confidence}`);
+console.log("Outliers:", result.outliers);

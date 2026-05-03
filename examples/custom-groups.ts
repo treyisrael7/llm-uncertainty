@@ -3,17 +3,17 @@ import { analyze } from "../src";
 const result = analyze({
   verbose: true,
   runs: [
-    "The forecast mentions rain tomorrow afternoon.",
-    "The forecast expects showers later tomorrow.",
-    "Precipitation is likely tomorrow afternoon."
+    "Create a refund for the customer.",
+    "Issue a reimbursement to the customer.",
+    "Give the customer account credit."
   ],
   customGroups: {
-    rainTerms: ["rain", "showers", "precipitation"]
+    refundTerms: ["refund", "reimbursement", "credit"]
   }
 });
 
-console.log("Custom vocabulary analysis");
-console.log("--------------------------");
+console.log("Custom vocabulary for domain synonyms");
+console.log("-------------------------------------");
 console.log(`Status: ${result.status}`);
 console.log(`Confidence: ${result.confidence}`);
 console.log("Clusters:", result.details?.clusters);

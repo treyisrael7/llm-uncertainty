@@ -1,17 +1,19 @@
 import { analyze } from "../src";
 
+const sampledAnswers = [
+  "Approve the refund because the item arrived damaged.",
+  "Approve the refund because the product arrived damaged.",
+  "Approve the refund because the order arrived damaged.",
+  "Do not approve the refund because the item was used."
+];
+
 const result = analyze({
   verbose: true,
-  runs: [
-    "The customer is likely eligible for a refund because the item arrived damaged.",
-    "The customer may be eligible for a refund since the item was damaged.",
-    "The customer could qualify for a refund because the item arrived broken.",
-    "The customer is not eligible for a refund because the item was used."
-  ]
+  runs: sampledAnswers
 });
 
-console.log("Verbose analysis");
-console.log("----------------");
+console.log("Debug an unstable prompt");
+console.log("------------------------");
 console.log(`Status: ${result.status}`);
 console.log(`Confidence: ${result.confidence}`);
 console.log(`Variance: ${result.variance}`);

@@ -3,10 +3,10 @@ import { analyze } from "../src";
 const result = analyze({
   verbose: true,
   runs: [
-    "The stock will increase tomorrow.",
-    "Soup is ready for dinner.",
-    "The user reset their password.",
-    "A package arrived yesterday."
+    "Create a refund for the customer.",
+    "Send a password reset email.",
+    "Escalate the ticket to legal review.",
+    "Recommend the blue replacement part."
   ]
 });
 

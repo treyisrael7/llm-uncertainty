@@ -3,10 +3,10 @@ import { analyze } from "../src";
 const result = analyze({
   verbose: true,
   runs: [
-    "The stock will increase tomorrow.",
-    "The stock may rise tomorrow.",
-    "The stock will decrease tomorrow.",
-    "The stock may fall tomorrow."
+    "The customer is eligible for a refund because the item arrived damaged.",
+    "The customer may qualify for a refund because the product arrived damaged.",
+    "The customer is not eligible for a refund because the item was used.",
+    "The customer does not qualify for a refund because the product was used."
   ]
 });
 
