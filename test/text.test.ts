@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 import { jaccardSimilarity, normalizeText, tokenize } from "../src";
 
 describe("text utilities", () => {
@@ -21,6 +21,16 @@ describe("text utilities", () => {
       ]);
     });
 
+    it("applies conservative stemming for simple word variants", () => {
+      expect(tokenize("resetting approved qualifies damaged broken")).toEqual([
+        "reset",
+        "approve",
+        "qualify",
+        "damage",
+        "broken"
+      ]);
+    });
+
     it("returns an empty array for punctuation-only input", () => {
       expect(tokenize("... !!!")).toEqual([]);
     });
@@ -33,6 +43,15 @@ describe("text utilities", () => {
 
     it("returns token overlap divided by token union", () => {
       expect(jaccardSimilarity("alpha beta", "beta gamma")).toBe(1 / 3);
+    });
+
+    it("raises reset/resetting similarity through stemming", () => {
+      expect(
+        jaccardSimilarity(
+          "The user should reset their password",
+          "The best next step is resetting the password"
+        )
+      ).toBeGreaterThan(0.25);
     });
 
     it("returns 0 when only one input has tokens", () => {
