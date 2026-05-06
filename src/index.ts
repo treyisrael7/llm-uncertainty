@@ -14,6 +14,7 @@ export type {
   AnalyzerStrictness,
   CustomGroups,
   DisagreementCluster,
+  OutlierDetector,
   PairwiseComparison,
   UncertaintyResult,
   UnstablePhrase

@@ -59,7 +59,12 @@ function analyzeRuns(options: AnalyzeOptions): UncertaintyResult {
   );
   const confidence = calculateConfidence(options.runs, comparisons, clusters, thresholds);
   const variance = roundToTwoDecimals(1 - confidence);
-  const outliers = detectOutliers(options.runs, comparisons, clusters);
+  const outliers = getOutliers(
+    options.runs,
+    comparisons,
+    clusters,
+    options.outlierDetector
+  );
   const status = getStatus(options.runs, comparisons, clusters, confidence, outliers, thresholds);
 
   const result: UncertaintyResult = {
@@ -71,6 +76,7 @@ function analyzeRuns(options: AnalyzeOptions): UncertaintyResult {
   };
 
   if (options.verbose === true) {
+    result.explanation = getExplanation(status);
     result.details = {
       method: "heuristic",
       unstablePhrases: findUnstablePhrases(options.runs),
@@ -82,6 +88,19 @@ function analyzeRuns(options: AnalyzeOptions): UncertaintyResult {
   return result;
 }
 
+function getExplanation(status: AnalysisStatus): string {
+  switch (status) {
+    case "stable":
+      return "Outputs agree strongly, with no detected disagreements or outliers.";
+    case "unstable":
+      return "Most outputs agree, but at least one response disagrees or falls outside the majority.";
+    case "split":
+      return "Multiple response groups disagree, so there is no single majority answer.";
+    case "no-consensus":
+      return "Outputs are too different to identify a reliable consensus.";
+  }
+}
+
 function normalizeAnalyzeInput(
   input: string[] | AnalyzeOptions,
   options: AnalyzerOptions
@@ -91,6 +110,7 @@ function normalizeAnalyzeInput(
       runs: input,
       customGroups: options.customGroups,
       minAgreement: options.minAgreement,
+      outlierDetector: options.outlierDetector,
       strictness: options.strictness,
       verbose: options.verbose
     };
@@ -114,6 +134,19 @@ function compareRuns(runs: string[]): PairwiseComparison[] {
   }
 
   return comparisons;
+}
+
+function getOutliers(
+  runs: string[],
+  comparisons: PairwiseComparison[],
+  clusters: DisagreementCluster[],
+  outlierDetector: AnalyzeOptions["outlierDetector"]
+): string[] {
+  if (outlierDetector !== undefined) {
+    return outlierDetector([...runs]);
+  }
+
+  return detectOutliers(runs, comparisons, clusters);
 }
 
 function buildClusters(

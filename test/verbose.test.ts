@@ -15,14 +15,18 @@ describe("verbose output", () => {
       "variance"
     ]);
     expect(result.details).toBeUndefined();
+    expect(result.explanation).toBeUndefined();
   });
 
-  it("includes debug details when verbose is true", () => {
+  it("includes explanation and debug details when verbose is true", () => {
     const result = analyze({
       verbose: true,
       runs: ["The refund was approved.", "The refund was approved."]
     });
 
+    expect(result.explanation).toBe(
+      "Outputs agree strongly, with no detected disagreements or outliers."
+    );
     expect(result.details).toEqual({
       method: "heuristic",
       unstablePhrases: [],

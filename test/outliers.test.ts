@@ -79,4 +79,41 @@ describe("detectOutliers", () => {
       "The package was delivered yesterday."
     ]);
   });
+
+  it("uses a custom outlier detector when provided", () => {
+    const runs = [
+      "The refund was approved.",
+      "The refund was approved.",
+      "The refund was approved."
+    ];
+    const seenRuns: string[][] = [];
+
+    const result = analyze(runs, {
+      outlierDetector: (outputs) => {
+        seenRuns.push(outputs);
+
+        return [outputs[0]];
+      }
+    });
+
+    expect(seenRuns).toEqual([runs]);
+    expect(result.outliers).toEqual(["The refund was approved."]);
+    expect(result.status).toBe("unstable");
+  });
+
+  it("uses custom outliers instead of default outlier logic", () => {
+    const result = analyze({
+      verbose: true,
+      outlierDetector: () => [],
+      runs: [
+        "Refund approved.",
+        "Refund approved.",
+        "Refund approved.",
+        "The weather forecast mentions rain."
+      ]
+    });
+
+    expect(result.outliers).toEqual([]);
+    expect(result.status).toBe("stable");
+  });
 });

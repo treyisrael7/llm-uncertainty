@@ -1,6 +1,7 @@
 export interface AnalyzerOptions {
   customGroups?: CustomGroups;
   minAgreement?: number;
+  outlierDetector?: OutlierDetector;
   strictness?: AnalyzerStrictness;
   verbose?: boolean;
 }
@@ -21,6 +22,8 @@ export type AnalysisStatus = "stable" | "unstable" | "split" | "no-consensus";
 export type AnalyzerStrictness = "loose" | "normal" | "strict";
 
 export type CustomGroups = Record<string, string[]>;
+
+export type OutlierDetector = (runs: string[]) => string[];
 
 export interface UnstablePhrase {
   phrase: string;
@@ -54,5 +57,6 @@ export interface UncertaintyResult {
   variance: number;
   consensus: string;
   outliers: string[];
+  explanation?: string;
   details?: AnalysisDetails;
 }

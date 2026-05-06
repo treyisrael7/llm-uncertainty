@@ -13,6 +13,9 @@ describe("analysis status", () => {
     });
 
     expect(result.status).toBe("stable");
+    expect(result.explanation).toBe(
+      "Outputs agree strongly, with no detected disagreements or outliers."
+    );
     expect(result.confidence).toBe(1);
   });
 
@@ -28,6 +31,9 @@ describe("analysis status", () => {
     });
 
     expect(result.status).toBe("unstable");
+    expect(result.explanation).toBe(
+      "Most outputs agree, but at least one response disagrees or falls outside the majority."
+    );
     expect(result.details?.clusters[0]?.indexes).toEqual([0, 1, 2]);
     expect(result.outliers).toEqual(["The weather forecast mentions rain."]);
     expect(result.confidence).toBeGreaterThanOrEqual(0.75);
@@ -59,6 +65,9 @@ describe("analysis status", () => {
     });
 
     expect(result.status).toBe("split");
+    expect(result.explanation).toBe(
+      "Multiple response groups disagree, so there is no single majority answer."
+    );
     expect(result.details?.clusters.map((cluster) => cluster.indexes)).toEqual([[0, 1], [2, 3]]);
   });
 
@@ -74,6 +83,9 @@ describe("analysis status", () => {
     });
 
     expect(result.status).toBe("no-consensus");
+    expect(result.explanation).toBe(
+      "Outputs are too different to identify a reliable consensus."
+    );
     expect(result.confidence).toBeLessThan(0.4);
   });
 
