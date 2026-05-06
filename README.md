@@ -22,9 +22,9 @@ if (result.status !== "stable") {
 }
 ```
 
-No model provider lock-in. No embeddings. No API calls. No runtime dependencies.
+Lightweight by design: no model provider lock-in, no embeddings, no API calls, no model internals, and no runtime dependencies.
 
-## When To Use It
+## When To Use This Library
 
 LLM apps often need to know whether a response is merely plausible or actually repeatable. This library gives you a cheap consistency check for workflows like:
 
@@ -34,7 +34,20 @@ LLM apps often need to know whether a response is merely plausible or actually r
 - comparing prompt changes during development
 - logging instability as an eval signal in production
 
+It is most useful as a guardrail before automation. Run the same prompt a few times, analyze the strings locally, then decide whether to trust, retry, escalate, or inspect.
+
+## When Not To Use This Library
+
 Do not use it as a truth oracle. It checks agreement between strings, not factual correctness.
+
+This is not the right tool when you need:
+
+- retrieval quality scoring
+- embedding-based semantic search
+- calibrated model confidence
+- access to logits, attention, or other model internals
+- a replacement for eval datasets or human review
+- a guarantee that a stable answer is correct
 
 ## Install
 
@@ -90,23 +103,44 @@ The default result is intentionally small enough to log or use in a guardrail:
 
 `consensus` is a normalized hint, useful for debugging and logs. Use your original model output when displaying a final answer.
 
-## Debug Mode
+## Configurable Strictness
+
+Use `strictness` to control how easily outputs group together:
+
+```ts
+const result = analyze(outputs, {
+  strictness: "strict"
+});
+```
+
+`strictness` can be `"loose"`, `"normal"`, or `"strict"`. `"normal"` is the default. Use `"loose"` when wording varies but the intent is usually the same. Use `"strict"` when small differences should trigger review.
+
+If you need direct control, `minAgreement` overrides the strictness preset:
+
+```ts
+const result = analyze(outputs, {
+  minAgreement: 0.7
+});
+```
+
+## Verbose Explanations
 
 Pass `verbose: true` when you want to understand why a prompt is unstable:
 
 ```ts
 const result = analyze(outputs, {
-  strictness: "strict",
   verbose: true
 });
 
+console.log(result.explanation);
 console.log(result.details?.clusters);
 console.log(result.details?.comparisons);
 console.log(result.details?.unstablePhrases);
 ```
 
-Verbose results include:
+Verbose results include a short `explanation` plus debug details:
 
+- `explanation`, a human-readable reason for `stable`, `unstable`, `split`, or `no-consensus`
 - `method: "heuristic"`
 - `unstablePhrases`, such as `may`, `might`, and `likely`
 - `clusters`, showing which runs grouped together
@@ -114,7 +148,7 @@ Verbose results include:
 
 ## Custom Vocabulary
 
-v0.1 uses lightweight heuristics. Add domain vocabulary when your app has synonyms that should count as agreement.
+v0.2 uses lightweight heuristics. Add domain vocabulary when your app has synonyms that should count as agreement.
 
 ```ts
 const result = analyze(runs, {
@@ -125,15 +159,18 @@ const result = analyze(runs, {
 });
 ```
 
-You can also tune thresholds for stricter or looser routing:
+## Custom Outlier Detection
+
+Pass `outlierDetector` when your app already knows how to identify bad or unsafe outputs. The function receives the sampled outputs and returns the outlier strings to include in the result.
 
 ```ts
 const result = analyze(runs, {
-  strictness: "strict"
+  outlierDetector: (outputs) =>
+    outputs.filter((output) => output.includes("manual review required"))
 });
 ```
 
-`strictness` can be `"loose"`, `"normal"`, or `"strict"`. `"normal"` matches the default behavior. If you pass `minAgreement`, it overrides the strictness preset.
+When provided, `outlierDetector` replaces the built-in outlier logic. Status uses your returned outlier list, while clustering, confidence, and verbose details still use the library's normal local heuristics.
 
 ## Examples
 
@@ -146,6 +183,9 @@ npx tsx examples/verbose.ts
 npx tsx examples/custom-groups.ts
 npx tsx examples/split.ts
 npx tsx examples/no-consensus.ts
+npx tsx examples/customer-support.ts
+npx tsx examples/rag-consistency.ts
+npx tsx examples/agent-decision.ts
 ```
 
 - `basic.ts` shows the smallest useful analysis result.
@@ -154,6 +194,9 @@ npx tsx examples/no-consensus.ts
 - `custom-groups.ts` adds domain vocabulary for synonym-heavy workflows.
 - `split.ts` demonstrates competing interpretations.
 - `no-consensus.ts` demonstrates unrelated outputs.
+- `customer-support.ts` shows routing a risky support reply to review.
+- `rag-consistency.ts` checks whether retrieved-answer samples agree before responding.
+- `agent-decision.ts` pauses an automated decision when sampled agent votes disagree.
 
 ## API
 
@@ -165,6 +208,7 @@ analyze(
     strictness?: "loose" | "normal" | "strict";
     verbose?: boolean;
     customGroups?: Record<string, string[]>;
+    outlierDetector?: (outputs: string[]) => string[];
   }
 );
 ```
@@ -177,18 +221,22 @@ The original object form is still supported for existing callers:
 analyze({
   runs,
   verbose: true,
+  outlierDetector: (outputs) =>
+    outputs.filter((output) => output.includes("manual review required")),
   customGroups: {
     refundTerms: ["refund", "reimbursement", "credit"]
   }
 });
 ```
 
-## Notes
+## Limitations Of v0.2
 
-- Works with any LLM provider because it only analyzes strings.
-- Does not require logits, embeddings, eval datasets, or model internals.
-- Best used as an early warning signal next to retries, evals, human review, or provider-specific confidence tools.
-- v0.1 is heuristic and intentionally small; it favors easy local adoption over deep semantic evaluation.
+- It only analyzes strings, so it works with any LLM provider but cannot inspect model confidence.
+- It does not use APIs, embeddings, logits, eval datasets, or model internals.
+- It can detect repeated agreement, split outputs, and obvious outliers, but not factual correctness.
+- Short or highly technical outputs may need `customGroups`, `strictness`, or a custom `outlierDetector`.
+- Treat it as an early warning signal next to retries, evals, human review, or provider-specific confidence tools.
+- v0.2 is intentionally small and local; it favors easy adoption over deep semantic evaluation.
 
 ## Roadmap
 
